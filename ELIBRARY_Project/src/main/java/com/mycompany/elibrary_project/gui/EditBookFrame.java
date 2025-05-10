@@ -27,6 +27,9 @@ public class EditBookFrame extends javax.swing.JFrame {
     private GenreService genreService;
     private LanguageService languageService;
     private AuthorService authorService;
+    private List<Author> authorList;
+    private List<Genre> genreList;
+    private List<Language> languageList;
 
     /**
      * Creates new form EditBookFrame
@@ -63,9 +66,9 @@ public class EditBookFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        genreCmb.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select Genre" }));
+        genreCmb.setModel(new javax.swing.DefaultComboBoxModel<>());
 
-        languageCmb.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select Language" }));
+        languageCmb.setModel(new javax.swing.DefaultComboBoxModel<>());
 
         updateBtn.setText("Update");
         updateBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -89,7 +92,7 @@ public class EditBookFrame extends javax.swing.JFrame {
 
         jLabel4.setText("Language");
 
-        authorCmb.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select Author" }));
+        authorCmb.setModel(new javax.swing.DefaultComboBoxModel<>());
         authorCmb.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 authorCmbActionPerformed(evt);
@@ -161,18 +164,20 @@ public class EditBookFrame extends javax.swing.JFrame {
     private void updateBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateBtnActionPerformed
         try {
             String name = nameTxt.getText();
-            Author selectedAuthor = (Author) authorCmb.getSelectedItem();  // This should now be an Author object
-            Genre selectedGenre = (Genre) genreCmb.getSelectedItem();
-            Language selectedLanguage = (Language) languageCmb.getSelectedItem();
+            int authorIndex = authorCmb.getSelectedIndex();
+            int genreIndex = genreCmb.getSelectedIndex();
+            int languageIndex = languageCmb.getSelectedIndex();
 
-            // Check if any required field is empty or null
-            if (name.isEmpty() || selectedAuthor == null || selectedGenre == null || selectedLanguage == null
-                    || selectedAuthor.getId() == null || selectedGenre.getId() == null || selectedLanguage.getId() == null) {
+            // Defensive check
+            if (name.isEmpty() || authorIndex < 0 || genreIndex < 0 || languageIndex < 0) {
                 JOptionPane.showMessageDialog(this, "Please fill all fields!", "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Retrieve the book by ID and update its details
+            Author selectedAuthor = authorList.get(authorIndex);
+            Genre selectedGenre = genreList.get(genreIndex);
+            Language selectedLanguage = languageList.get(languageIndex);
+
             Book book = bookService.getBookById(selectedRowId);
             if (book == null) {
                 JOptionPane.showMessageDialog(this, "Book not found!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -184,19 +189,14 @@ public class EditBookFrame extends javax.swing.JFrame {
             book.setGenre(selectedGenre);
             book.setLanguage(selectedLanguage);
 
-            // Update book in the database
             bookService.updateBook(book);
-
-            // Show success message and close the form
             JOptionPane.showMessageDialog(this, "Book has been successfully updated!");
-            this.dispose(); // Close the frame after saving
+            this.dispose();
 
         } catch (SQLException sqlEx) {
-            // Handle SQL specific exceptions (e.g., database connection issues)
             sqlEx.printStackTrace();
             JOptionPane.showMessageDialog(this, "Database error while updating book!", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            // Handle other exceptions (e.g., null pointer exceptions)
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error while updating book!", "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -232,34 +232,51 @@ public class EditBookFrame extends javax.swing.JFrame {
     private void showBookOldData() {
         try {
             Book book = bookService.getBookById(selectedRowId);
-
-            // Set the current book data to the text fields
             nameTxt.setText(book.getName());
 
-            // Populate the ComboBoxes with authors, genres, and languages
-            List<Author> authors = authorService.getAuthorList();
-            for (Author author : authors) {
-                authorCmb.addItem(author.getName()); // Add to ComboBox (you should use the actual Author object)
+            // --- Load and map authors ---
+            authorCmb.removeAllItems();
+            authorList = authorService.getAuthorList();
+            for (Author author : authorList) {
+                authorCmb.addItem(author.getName() + " " + author.getSurname());
+            }
+            // Set the selected author by index
+            for (int i = 0; i < authorList.size(); i++) {
+                if (authorList.get(i).getId().equals(book.getAuthor().getId())) {
+                    authorCmb.setSelectedIndex(i);
+                    break;
+                }
             }
 
-            List<Genre> genres = genreService.getGenreList();
-            for (Genre genre : genres) {
-                genreCmb.addItem(genre.getName()); // Add to ComboBox (you should use the actual Genre object)
+            // --- Load and map genres ---
+            genreCmb.removeAllItems();
+            genreList = genreService.getGenreList();
+            for (Genre genre : genreList) {
+                genreCmb.addItem(genre.getName());
+            }
+            for (int i = 0; i < genreList.size(); i++) {
+                if (genreList.get(i).getId().equals(book.getGenre().getId())) {
+                    genreCmb.setSelectedIndex(i);
+                    break;
+                }
             }
 
-            List<Language> languages = languageService.getLanguageList();
-            for (Language language : languages) {
-                languageCmb.addItem(language.getName()); // Add to ComboBox (you should use the actual Language object)
+            // --- Load and map languages ---
+            languageCmb.removeAllItems();
+            languageList = languageService.getLanguageList();
+            for (Language language : languageList) {
+                languageCmb.addItem(language.getName());
             }
-
-            // Set current book's selected values in the ComboBoxes
-            authorCmb.setSelectedItem(book.getAuthor().getName());
-            genreCmb.setSelectedItem(book.getGenre().getName());
-            languageCmb.setSelectedItem(book.getLanguage().getName());
+            for (int i = 0; i < languageList.size(); i++) {
+                if (languageList.get(i).getId().equals(book.getLanguage().getId())) {
+                    languageCmb.setSelectedIndex(i);
+                    break;
+                }
+            }
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error loading book data.");
+            JOptionPane.showMessageDialog(this, "Error loading book data!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

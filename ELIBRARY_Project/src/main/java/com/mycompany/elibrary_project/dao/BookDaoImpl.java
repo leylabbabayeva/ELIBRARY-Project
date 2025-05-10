@@ -129,20 +129,13 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public void updateBook(Book book) throws Exception {
-        String sql = "UPDATE ELIBRARY.BOOK\n"
-                + "SET \n"
-                + "    NAME = ?,\n"
-                + "    AUTHOR_ID = (SELECT ID FROM ELIBRARY.AUTHOR WHERE ID = ?),    -- Update author to Banana Yoshimoto (ID 1)\n"
-                + "    GENRE_ID = (SELECT ID FROM ELIBRARY.GENRE WHERE ID = ?),      -- Update genre to Mystery (ID 5)\n"
-                + "    LANGUAGE_ID = (SELECT ID FROM ELIBRARY.LANGUAGE WHERE ID = ?)  -- Update language to German (ID 5)\n"
-                + "WHERE \n"
-                + "    BOOK.ID = ?";
+        String sql = "UPDATE BOOK SET AUTHOR_ID = ?, GENRE_ID = ?, LANGUAGE_ID = ?, NAME = ? WHERE ID = ?";
 
         try ( Connection c = DbConnect.getConnection();  PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, book.getName());
-            ps.setLong(2, book.getAuthor().getId());
-            ps.setLong(3, book.getGenre().getId());
-            ps.setLong(4, book.getLanguage().getId());
+            ps.setString(4, book.getName());
+            ps.setLong(1, book.getAuthor().getId());
+            ps.setLong(2, book.getGenre().getId());
+            ps.setLong(3, book.getLanguage().getId());
             ps.setLong(5, book.getId());
             ps.execute();
             c.commit();
