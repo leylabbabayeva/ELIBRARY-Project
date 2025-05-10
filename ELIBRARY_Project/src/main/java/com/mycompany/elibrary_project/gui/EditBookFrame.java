@@ -206,9 +206,9 @@ public class EditBookFrame extends javax.swing.JFrame {
 
     private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
         nameTxt.setText("");
-        authorCmb.setSelectedIndex(0); // back to "Select Author"
-        genreCmb.setSelectedIndex(0);  // back to "Select Genre"
-        languageCmb.setSelectedIndex(0); // back to "Select Language"
+        authorCmb.setSelectedItem(null);
+        genreCmb.setSelectedItem(null);
+        languageCmb.setSelectedItem(null);
     }//GEN-LAST:event_clearBtnActionPerformed
 
     private void authorCmbActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_authorCmbActionPerformed

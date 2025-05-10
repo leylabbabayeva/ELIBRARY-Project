@@ -375,9 +375,16 @@ public class MainFrame extends javax.swing.JFrame {
                 editStaffFrame.setVisible(true);
                 break;
             }
-            case "borrow":
-
+            case "borrow": {
+                if (rowIndex == -1) {
+                    JOptionPane.showMessageDialog(null, "Please, select table row", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+                Long selectedRowId = (Long) DataTable.getValueAt(rowIndex, 0);
+                EditBorrowFrame editBorrowFrame = new EditBorrowFrame(borrowService, bookService, memberService, staffService, selectedRowId);
+                editBorrowFrame.setVisible(true);
                 break;
+
+            }
 
             default:
                 JOptionPane.showMessageDialog(null, "Please, select menu", "Warning", JOptionPane.WARNING_MESSAGE);
